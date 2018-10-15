@@ -6,10 +6,8 @@ $(document).ready(function() {
   var famResults = ''
   var families = []
 
-  $.get(_url, function (data) {
-
+  function renderPage(data){
     $.each(data, function(key, items){
-
       _fam = items.family
 
       dataResults += "<div>"
@@ -25,7 +23,28 @@ $(document).ready(function() {
 
     $('#plants').html(dataResults)
     $('#fam_select').html("<option value='all'>semua</option>" +famResults)
+  }
 
+  var networkDataReceived = false
+
+  var networkUpdate = fetch(_url).then(function(response){
+    return response.json()
+  }).then(function(data){
+    networkDataReceived = true
+    renderPage(data)
+  })
+
+  //return data from cache
+  caches.match(_url).then(function(response){
+    if(!response) throw Error('no data on cache')
+    return response.json()
+  }).then(function(data){
+    if(!networkDataReceived){
+      renderPage(data)
+      console.log('render data from cache')
+    }
+  }).catch(function(){
+    return networkUpdate
   })
 
   //Filter
